@@ -1,9 +1,6 @@
-
 import { GoogleGenAI, Type } from '@google/genai';
 import { AnalysisResult } from '../types';
 import { DEMO_ANALYSIS_RESULT } from '../constants';
-
-const API_KEY = process.env.API_KEY;
 
 const analysisSchema = {
   type: Type.OBJECT,
@@ -50,14 +47,14 @@ const analysisSchema = {
 };
 
 
-export const analyzeBillingData = async (billingData: string): Promise<AnalysisResult> => {
-  if (!API_KEY) {
-    console.warn("API_KEY not found. Using fallback demo data.");
+export const analyzeBillingData = async (billingData: string, apiKey?: string): Promise<AnalysisResult> => {
+  if (!apiKey) {
+    console.warn("API key not provided. Using fallback demo data.");
     return Promise.resolve(DEMO_ANALYSIS_RESULT);
   }
 
   try {
-    const ai = new GoogleGenAI({ apiKey: API_KEY });
+    const ai = new GoogleGenAI({ apiKey });
     
     const prompt = `
       You are an expert GCP cost optimization analyst named CloudCost Guard.
