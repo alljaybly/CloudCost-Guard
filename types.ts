@@ -32,3 +32,10 @@ export interface Alert {
   message: string;
   timestamp: string;
 }
+
+export type DataSource = 'live' | 'demo';
+
+export interface AnalysisResponse {
+  result: AnalysisResult;
+  source: DataSource;
+}
