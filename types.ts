@@ -1,36 +1,47 @@
 
-export interface CostBreakdownItem {
-  service: string;
-  cost: number;
+export interface AlertSettings {
+  budget: number;
+  warningThreshold: number;
+  criticalThreshold: number;
 }
 
+// Fix: Add Recommendation type for Recommendations.tsx component
 export interface Recommendation {
   title: string;
   description: string;
   estimatedSavings: number;
 }
 
+// Fix: Add CostBreakdownItem type for CostVisuals.tsx component
+export interface CostBreakdownItem {
+  service: string;
+  cost: number;
+}
+
+// Fix: Add ForecastDataPoint type for CostVisuals.tsx component
 export interface ForecastDataPoint {
   month: string;
-  // FIX: Made `cost` optional to allow for forecast data points that
-  // represent future predictions and may only contain a `predictedCost`.
   cost?: number;
   predictedCost?: number;
 }
 
 export interface AnalysisResult {
-  totalSpend: number;
-  potentialSavings: number;
-  costBreakdown: CostBreakdownItem[];
-  recommendations: Recommendation[];
-  forecast: ForecastDataPoint[];
+  currentCost: number;
+  optimizedCost: number;
+  savings: number;
+  recommendations: string[];
+  breakdown: {
+    compute: number;
+    storage: number;
+    network: number;
+    other: number;
+  };
 }
 
-export interface Alert {
-  id: number;
-  level: 'warning' | 'critical';
+export interface AlertStatus {
+  level: 'normal' | 'warning' | 'critical';
+  color: string;
   message: string;
-  timestamp: string;
 }
 
 export type DataSource = 'live' | 'demo';

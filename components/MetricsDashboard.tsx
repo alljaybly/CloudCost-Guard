@@ -1,78 +1,71 @@
-
 import React from 'react';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
+import { AnalysisResult } from '../types';
 
-interface MetricCardProps {
-    title: string;
-    value: string;
-    description: string;
-    icon: React.ReactNode;
-    colorClass: string;
+interface ResultsDisplayProps {
+  result: AnalysisResult;
 }
 
-const MetricCard: React.FC<MetricCardProps> = ({ title, value, description, icon, colorClass }) => (
-    <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-md flex items-start space-x-4">
-        <div className={`p-3 rounded-full ${colorClass}`}>
-            {icon}
-        </div>
-        <div>
-            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{title}</p>
-            <p className="text-3xl font-bold text-slate-900 dark:text-white">{value}</p>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{description}</p>
-        </div>
+const MetricCard: React.FC<{ title: string; value: string; color: string }> = ({ title, value, color }) => (
+    <div className="bg-slate-100 dark:bg-slate-800/50 p-4 rounded-lg text-center">
+        <p className="text-sm text-slate-500 dark:text-slate-400">{title}</p>
+        <p className={`text-3xl font-bold ${color}`}>{value}</p>
     </div>
 );
 
+const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="p-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md shadow-lg">
+          <p className="font-bold capitalize">{label}</p>
+          <p className="text-blue-500">{`Cost: $${payload[0].value.toLocaleString()}`}</p>
+        </div>
+      );
+    }
+    return null;
+  };
 
-interface MetricsDashboardProps {
-  totalSpend: number;
-  potentialSavings: number;
-}
-
-const MetricsDashboard: React.FC<MetricsDashboardProps> = ({ totalSpend, potentialSavings }) => {
-  const savingsPercentage = totalSpend > 0 ? ((potentialSavings / totalSpend) * 100).toFixed(0) : 0;
+const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result }) => {
+  const breakdownData = Object.entries(result.breakdown).map(([service, cost]) => ({
+    name: service,
+    cost,
+  }));
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <MetricCard 
-        title="Total Monthly Spend"
-        value={`$${totalSpend.toLocaleString()}`}
-        description="Current estimated monthly cost."
-        icon={<DollarIcon />}
-        colorClass="bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400"
-      />
-      <MetricCard 
-        title="Identified Savings"
-        value={`$${potentialSavings.toLocaleString()}`}
-        description="Actionable savings found by AI."
-        icon={<SparklesIcon />}
-        colorClass="bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400"
-      />
-      <MetricCard 
-        title="Optimization Potential"
-        value={`${savingsPercentage}%`}
-        description="Potential reduction in monthly spend."
-        icon={<ChartBarIcon />}
-        colorClass="bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400"
-      />
+    <div className="space-y-8">
+      {/* Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <MetricCard title="Current Monthly Cost" value={`$${result.currentCost.toLocaleString()}`} color="text-red-500" />
+        <MetricCard title="Optimized Monthly Cost" value={`$${result.optimizedCost.toLocaleString()}`} color="text-green-500" />
+        <MetricCard title="Total Potential Savings" value={`$${result.savings.toLocaleString()}`} color="text-blue-500" />
+      </div>
+
+      {/* Recommendations & Breakdown */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+        <div className="lg:col-span-3 bg-white dark:bg-slate-800 p-6 rounded-lg shadow-md">
+          <h3 className="text-xl font-semibold mb-4 text-slate-900 dark:text-white">Actionable Recommendations</h3>
+          <ul className="space-y-3 list-disc list-inside text-slate-600 dark:text-slate-300">
+            {result.recommendations.map((rec, index) => (
+              <li key={index}>{rec}</li>
+            ))}
+          </ul>
+        </div>
+        <div className="lg:col-span-2 bg-white dark:bg-slate-800 p-6 rounded-lg shadow-md">
+          <h3 className="text-xl font-semibold mb-4 text-slate-900 dark:text-white">Cost Breakdown</h3>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={breakdownData} layout="vertical" margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
+                <XAxis type="number" tick={{ fill: '#64748b' }} axisLine={{ stroke: '#374151' }} tickLine={{ stroke: '#374151' }} />
+                <YAxis dataKey="name" type="category" width={80} tick={{ fill: '#9ca3af', textTransform: 'capitalize' }} axisLine={false} tickLine={false} />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(203, 213, 225, 0.1)' }} />
+                <Bar dataKey="cost" fill="#3b82f6" name="Cost" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
 
-// Icons
-const DollarIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01" />
-  </svg>
-);
-const SparklesIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m11-4.08V12a3 3 0 00-3-3h-1.08M17 12a3 3 0 013 3v1.08M9 3.08V7a3 3 0 01-3 3H4.92M9 7a3 3 0 003-3V3.08" />
-  </svg>
-);
-const ChartBarIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-    </svg>
-);
-
-export default MetricsDashboard;
+export default ResultsDisplay;

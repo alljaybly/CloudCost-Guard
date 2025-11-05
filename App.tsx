@@ -1,17 +1,38 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { AnalysisResult } from './types';
-import { DEMO_DATASETS, SAMPLE_BILLING_DATA } from './constants';
 import { analyzeBillingData } from './services/geminiService';
 import Header from './components/Header';
 import CostAnalysis from './components/CostAnalysis';
-import MetricsDashboard from './components/MetricsDashboard';
-import Recommendations from './components/Recommendations';
-import CostVisuals from './components/CostVisuals';
-import Alerts from './components/Alerts';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorDisplay from './components/ErrorDisplay';
 import ApiKeyModal from './components/ApiKeyModal';
+import RealTimeAlerts from './components/Alerts';
+import ResultsDisplay from './components/MetricsDashboard';
+
+const STORAGE_KEYS = {
+  API_KEY: 'cloudcost_api_key',
+};
+
+const DEFAULT_BILLING_DATA = `Service,Cost
+Compute Engine VM instances,$4847.00
+Cloud Storage buckets,$3250.00
+Network egress bandwidth,$5620.00
+Small test workload,$2100.00
+`;
+
+// Initial default result to show on first load
+const INITIAL_ANALYSIS_RESULT: AnalysisResult = {
+    currentCost: 6850,
+    optimizedCost: 3120,
+    savings: 3730,
+    recommendations: [
+      'Automated resource scheduling (saves $1500/month)',
+      'Migrate to Cloud Run (saves $1200/month)',
+      'Use sustained/committed discounts (saves $1030/month)'
+    ],
+    breakdown: { compute: 3800, storage: 1650, network: 1200, other: 200 }
+};
+
 
 type ErrorState = {
   message: string;
@@ -19,14 +40,15 @@ type ErrorState = {
 } | null;
 
 function App() {
-  const [analysisResult, setAnalysisResult] = useState<AnalysisResult>(DEMO_DATASETS.DEFAULT);
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult>(INITIAL_ANALYSIS_RESULT);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<ErrorState>(null);
   const [apiKey, setApiKey] = useState<string>('');
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [billingData, setBillingData] = useState<string>(DEFAULT_BILLING_DATA);
 
   useEffect(() => {
-    const storedKey = sessionStorage.getItem('gemini-api-key');
+    const storedKey = sessionStorage.getItem(STORAGE_KEYS.API_KEY);
     if (storedKey) {
       setApiKey(storedKey);
     }
@@ -34,7 +56,7 @@ function App() {
 
   const handleSaveApiKey = (key: string) => {
     setApiKey(key);
-    sessionStorage.setItem('gemini-api-key', key);
+    sessionStorage.setItem(STORAGE_KEYS.API_KEY, key);
     setIsModalOpen(false);
   };
 
@@ -47,7 +69,7 @@ function App() {
 
       if (response.source === 'demo' && !!apiKey) {
         setError({
-          message: 'Could not get a live analysis from the AI due to a response formatting issue. Displaying relevant demo data instead.',
+          message: 'Could not get a live analysis from the AI. This could be due to an invalid API key, network issue, or a malformed response. Displaying relevant demo data instead.',
           severity: 'warning'
         });
       }
@@ -65,10 +87,13 @@ function App() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-sans">
       <Header />
-      <main className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+      <main className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-8">
+        <RealTimeAlerts currentSpend={analysisResult.currentCost} />
+        
         <CostAnalysis 
           onAnalyze={handleAnalyze} 
-          initialData={SAMPLE_BILLING_DATA} 
+          billingData={billingData}
+          setBillingData={setBillingData}
           isLoading={isLoading}
           apiKeyIsSet={!!apiKey}
           onSetApiKey={() => setIsModalOpen(true)}
@@ -78,24 +103,7 @@ function App() {
         {error && <ErrorDisplay message={error.message} severity={error.severity} />}
 
         {!isLoading && analysisResult && (
-          <div className="mt-8 space-y-8">
-            <MetricsDashboard 
-              totalSpend={analysisResult.totalSpend}
-              potentialSavings={analysisResult.potentialSavings}
-            />
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2">
-                <Recommendations recommendations={analysisResult.recommendations} />
-              </div>
-              <div className="space-y-8">
-                <CostVisuals 
-                  breakdownData={analysisResult.costBreakdown}
-                  forecastData={analysisResult.forecast}
-                />
-                <Alerts totalSpend={analysisResult.totalSpend} />
-              </div>
-            </div>
-          </div>
+          <ResultsDisplay result={analysisResult} />
         )}
       </main>
       <ApiKeyModal

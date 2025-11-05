@@ -1,5 +1,5 @@
 {
   "name": "CloudCost Guard",
-  "description": "An AI-powered GCP cost optimization platform. Paste GCP billing data to identify waste, get actionable recommendations, monitor budgets, and forecast future spending using Google Gemini.",
+  "description": "An intelligent platform that leverages the Google Gemini AI to analyze Google Cloud Platform (GCP) billing data, identify waste, provide actionable cost-saving recommendations, and monitor budgets.",
   "requestFramePermissions": []
 }
