@@ -13,6 +13,7 @@ This project demonstrates a modern, multi-service architecture deployed on Cloud
 -   **📊 Interactive Data Visualization:** Understand your spending at a glance with a dynamic cost breakdown bar chart and a predictive forecasting line chart powered by Recharts.
 -   **🔔 Real-time Alert System:** Set a monthly budget and configure custom warning/critical thresholds. A visual progress meter and an alert history provide immediate feedback on spending velocity.
 -   **🖱️ Interactive Threshold Adjustment:** Visually adjust alert thresholds by dragging handles directly on the budget progress bar for a more intuitive user experience.
+-   **🔒 Secure API Key Management:** Enter your Gemini API key directly in the app. It's stored securely in your browser's session storage for the current session and is never sent to our servers.
 -   **🌐 Demo-Ready Fallback:** The application includes built-in sample data, ensuring a full-featured and impressive demonstration is always possible, even without a configured API key.
 
 ## 🚀 Tech Stack & Architecture
@@ -54,26 +55,22 @@ cd cloudcost-guard
 npm install
 ```
 
-### 3. Set Up Environment Variables
-
-To connect to the Google Gemini API, you need an API key.
-
-1.  Create a file named `.env` in the root of the project.
-2.  Add your API key to the `.env` file:
-
-    ```
-    API_KEY=your_google_gemini_api_key_here
-    ```
-
-    **Note:** If you do not provide an API key, the application will automatically use the built-in sample data for a complete demo experience.
-
-### 4. Run the Development Server
+### 3. Run the Development Server
 
 ```bash
 npm run dev
 ```
 
 The application should now be running on `http://localhost:3000`.
+
+### 4. Using the Application
+
+-   **Demo Mode:** By default, the application runs in demo mode using built-in sample data. This allows you to explore all features without an API key.
+-   **Live Analysis:** To perform a real-time analysis on your own data:
+    1.  Click the **"Set API Key"** button on the dashboard.
+    2.  In the modal that appears, paste your Google Gemini API key.
+    3.  Click **"Save Key"**. The key is securely stored in your browser's session storage for the duration of your session.
+    4.  You can now paste your GCP billing data and click "Analyze Costs" to get a live analysis from Gemini.
 
 ## 🏆 Hackathon Strategy
 
