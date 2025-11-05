@@ -1,0 +1,29 @@
+
+import React from 'react';
+
+const ShieldIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+    <path fillRule="evenodd" d="M10 1.944c-1.666 0-3.12.6-4.243 1.572C4.634 4.493 4 5.69 4 7v5.111c0 1.25.333 2.333.8 3.111.467.778 1.1 1.378 1.833 1.778.734.4 1.567.6 2.367.6s1.633-.2 2.367-.6c.733-.4 1.366-.999 1.833-1.777.467-.778.8-1.861.8-3.111V7c0-1.31-.634-2.507-1.757-3.484C13.12 2.544 11.666 1.944 10 1.944zM9 13l-3-3 1.41-1.41L9 10.18l4.59-4.59L15 7l-6 6z" clipRule="evenodd" />
+  </svg>
+);
+
+
+const Header: React.FC = () => {
+  return (
+    <header className="bg-white dark:bg-slate-800/50 backdrop-blur-sm shadow-sm sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          <div className="flex items-center space-x-3">
+            <ShieldIcon />
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+              CloudCost Guard
+            </h1>
+          </div>
+          <p className="hidden md:block text-sm text-slate-500 dark:text-slate-400">AI-Powered GCP Cost Optimization</p>
+        </div>
+      </div>
+    </header>
+  );
+};
+
+export default Header;
