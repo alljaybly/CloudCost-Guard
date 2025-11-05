@@ -64,7 +64,24 @@ const Alerts: React.FC<AlertsProps> = ({ totalSpend }) => {
   const [hoveredHandle, setHoveredHandle] = useState<'warning' | 'critical' | null>(null);
   const [isBarHovered, setIsBarHovered] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [updateSuccess, setUpdateSuccess] = useState<boolean>(false);
   const progressBarRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    try {
+      const savedSettings = localStorage.getItem('alertSettings');
+      if (savedSettings) {
+        const { budget, warningThreshold, criticalThreshold } = JSON.parse(savedSettings);
+        if (typeof budget === 'number' && typeof warningThreshold === 'number' && typeof criticalThreshold === 'number') {
+          setBudget(budget);
+          setWarningThreshold(warningThreshold);
+          setCriticalThreshold(criticalThreshold);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load or parse alert settings from localStorage", error);
+    }
+  }, []);
 
   useEffect(() => {
     setBudgetInput(String(budget));
@@ -94,8 +111,18 @@ const Alerts: React.FC<AlertsProps> = ({ totalSpend }) => {
     }
   }, [totalSpend, budget, warningThreshold, criticalThreshold, spendPercentage]);
 
+  useEffect(() => {
+    if (updateSuccess) {
+      const timer = setTimeout(() => setUpdateSuccess(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [updateSuccess]);
+
   const handleUpdateSettings = (e: React.FormEvent) => {
     e.preventDefault();
+    setValidationError(null);
+    setUpdateSuccess(false);
+
     const newBudget = parseInt(budgetInput, 10);
     const newWarning = parseInt(warningThresholdInput, 10);
     const newCritical = parseInt(criticalThresholdInput, 10);
@@ -117,10 +144,21 @@ const Alerts: React.FC<AlertsProps> = ({ totalSpend }) => {
       return;
     }
     
-    setValidationError(null);
     setBudget(newBudget);
     setWarningThreshold(newWarning);
     setCriticalThreshold(newCritical);
+
+    try {
+      localStorage.setItem('alertSettings', JSON.stringify({
+        budget: newBudget,
+        warningThreshold: newWarning,
+        criticalThreshold: newCritical,
+      }));
+    } catch (error) {
+      console.error("Failed to save settings to localStorage", error);
+    }
+    
+    setUpdateSuccess(true);
   };
 
   const handleDragMove = useCallback((event: MouseEvent | TouchEvent) => {
@@ -259,8 +297,9 @@ const Alerts: React.FC<AlertsProps> = ({ totalSpend }) => {
               className="mt-1 w-full p-2 bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none" aria-label="Set critical threshold" />
           </div>
         </div>
-        <div className="flex justify-end items-center gap-4">
+        <div className="flex justify-end items-center gap-4 h-6">
           {validationError && <p className="text-red-500 text-sm font-medium" role="alert">{validationError}</p>}
+          {updateSuccess && <p className="text-green-600 dark:text-green-500 text-sm font-medium" role="status">Settings updated successfully!</p>}
           <button type="submit" className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 disabled:bg-slate-400 transition-colors">Update Settings</button>
         </div>
       </form>
