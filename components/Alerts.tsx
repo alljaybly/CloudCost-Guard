@@ -63,8 +63,15 @@ const Alerts: React.FC<AlertsProps> = ({ totalSpend }) => {
   const [draggingHandle, setDraggingHandle] = useState<'warning' | 'critical' | null>(null);
   const [hoveredHandle, setHoveredHandle] = useState<'warning' | 'critical' | null>(null);
   const [isBarHovered, setIsBarHovered] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    setBudgetInput(String(budget));
+    setWarningThresholdInput(String(warningThreshold));
+    setCriticalThresholdInput(String(criticalThreshold));
+  }, [budget, warningThreshold, criticalThreshold]);
+  
   const spendPercentage = budget > 0 ? (totalSpend / budget) * 100 : 0;
   
   let progressBarColor = 'bg-green-500';
@@ -92,16 +99,28 @@ const Alerts: React.FC<AlertsProps> = ({ totalSpend }) => {
     const newBudget = parseInt(budgetInput, 10);
     const newWarning = parseInt(warningThresholdInput, 10);
     const newCritical = parseInt(criticalThresholdInput, 10);
-    
-    if (!isNaN(newBudget) && newBudget > 0 && !isNaN(newWarning) && newWarning > 0 && newWarning < 100 && !isNaN(newCritical) && newCritical > 0 && newCritical <= 100 && newWarning < newCritical) {
-      setBudget(newBudget);
-      setWarningThreshold(newWarning);
-      setCriticalThreshold(newCritical);
-    } else {
-        setBudgetInput(String(budget));
-        setWarningThresholdInput(String(warningThreshold));
-        setCriticalThresholdInput(String(criticalThreshold));
+
+    if (isNaN(newBudget) || newBudget <= 0) {
+      setValidationError('Budget must be a positive number.');
+      return;
     }
+    if (isNaN(newWarning) || newWarning <= 0 || newWarning >= 100) {
+      setValidationError('Warning threshold must be between 1 and 99.');
+      return;
+    }
+    if (isNaN(newCritical) || newCritical <= 0 || newCritical > 100) {
+      setValidationError('Critical threshold must be between 1 and 100.');
+      return;
+    }
+    if (newWarning >= newCritical) {
+      setValidationError('Warning threshold must be less than the critical threshold.');
+      return;
+    }
+    
+    setValidationError(null);
+    setBudget(newBudget);
+    setWarningThreshold(newWarning);
+    setCriticalThreshold(newCritical);
   };
 
   const handleDragMove = useCallback((event: MouseEvent | TouchEvent) => {
@@ -115,11 +134,9 @@ const Alerts: React.FC<AlertsProps> = ({ totalSpend }) => {
     if (draggingHandle === 'warning') {
         const newWarning = Math.min(percentage, criticalThreshold - 1);
         setWarningThreshold(newWarning);
-        setWarningThresholdInput(String(newWarning));
     } else if (draggingHandle === 'critical') {
         const newCritical = Math.max(percentage, warningThreshold + 1);
         setCriticalThreshold(newCritical);
-        setCriticalThresholdInput(String(newCritical));
     }
   }, [draggingHandle, criticalThreshold, warningThreshold]);
 
@@ -242,8 +259,9 @@ const Alerts: React.FC<AlertsProps> = ({ totalSpend }) => {
               className="mt-1 w-full p-2 bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none" aria-label="Set critical threshold" />
           </div>
         </div>
-        <div className="flex justify-end">
-            <button type="submit" className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 disabled:bg-slate-400 transition-colors">Update Settings</button>
+        <div className="flex justify-end items-center gap-4">
+          {validationError && <p className="text-red-500 text-sm font-medium" role="alert">{validationError}</p>}
+          <button type="submit" className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 disabled:bg-slate-400 transition-colors">Update Settings</button>
         </div>
       </form>
 
