@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { AnalysisResult } from './types';
+import { AnalysisResult, Recommendation } from './types';
 import { analyzeBillingData } from './services/geminiService';
 import Header from './components/Header';
 import CostAnalysis from './components/CostAnalysis';
@@ -26,9 +26,9 @@ const INITIAL_ANALYSIS_RESULT: AnalysisResult = {
     optimizedCost: 3120,
     savings: 3730,
     recommendations: [
-      'Automated resource scheduling (saves $1500/month)',
-      'Migrate to Cloud Run (saves $1200/month)',
-      'Use sustained/committed discounts (saves $1030/month)'
+      { title: 'Automated Resource Scheduling', description: 'Automatically shut down non-production resources during off-hours to reduce idle costs.', estimatedSavings: 1500 },
+      { title: 'Migrate to Cloud Run', description: 'For containerized, stateless workloads, migrating from VMs to serverless Cloud Run can lower costs and improve scalability.', estimatedSavings: 1200 },
+      { title: 'Use Sustained/Committed Discounts', description: 'Leverage Google\'s automatic sustained use discounts or purchase committed use discounts for predictable workloads.', estimatedSavings: 1030 }
     ],
     breakdown: { compute: 3800, storage: 1650, network: 1200, other: 200 }
 };
@@ -99,12 +99,17 @@ function App() {
           onSetApiKey={() => setIsModalOpen(true)}
         />
         
-        {isLoading && <div className="flex justify-center items-center h-96"><LoadingSpinner /></div>}
-        {error && <ErrorDisplay message={error.message} severity={error.severity} />}
-
-        {!isLoading && analysisResult && (
-          <ResultsDisplay result={analysisResult} />
+        {isLoading ? (
+          <div className="flex justify-center items-center h-96">
+            <LoadingSpinner />
+          </div>
+        ) : (
+          <>
+            {error && <ErrorDisplay message={error.message} severity={error.severity} />}
+            {analysisResult && <ResultsDisplay result={analysisResult} />}
+          </>
         )}
+
       </main>
       <ApiKeyModal
         isOpen={isModalOpen}

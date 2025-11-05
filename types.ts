@@ -5,7 +5,6 @@ export interface AlertSettings {
   criticalThreshold: number;
 }
 
-// Fix: Add Recommendation type for Recommendations.tsx component
 export interface Recommendation {
   title: string;
   description: string;
@@ -29,7 +28,7 @@ export interface AnalysisResult {
   currentCost: number;
   optimizedCost: number;
   savings: number;
-  recommendations: string[];
+  recommendations: Recommendation[];
   breakdown: {
     compute: number;
     storage: number;

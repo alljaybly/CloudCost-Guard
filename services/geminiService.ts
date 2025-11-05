@@ -1,14 +1,14 @@
 import { GoogleGenAI, Type } from '@google/genai';
-import { AnalysisResult, AnalysisResponse } from '../types';
+import { AnalysisResult, AnalysisResponse, Recommendation } from '../types';
 
 const COMPUTE_HEAVY_DATASET: AnalysisResult = {
   currentCost: 4847,
   optimizedCost: 1847,
   savings: 3000,
   recommendations: [
-    'Switch to preemptible VMs for batch workloads (saves $1200/month)',
-    'Right-size overprovisioned instances (saves $1000/month)',
-    'Use committed use discounts (saves $800/month)',
+    { title: 'Switch to Preemptible VMs', description: 'Use preemptible VMs for batch workloads to significantly reduce compute costs.', estimatedSavings: 1200 },
+    { title: 'Right-size Instances', description: 'Analyze usage and downsize overprovisioned instances to match actual demand.', estimatedSavings: 1000 },
+    { title: 'Use Committed Use Discounts', description: 'Commit to 1 or 3-year terms for consistent workloads to get significant discounts.', estimatedSavings: 800 },
   ],
   breakdown: { compute: 3500, storage: 800, network: 447, other: 100 },
 };
@@ -18,9 +18,9 @@ const STORAGE_HEAVY_DATASET: AnalysisResult = {
   optimizedCost: 1450,
   savings: 1800,
   recommendations: [
-    'Move to Nearline/Coldline storage (saves $900/month)',
-    'Enable object lifecycle policies (saves $600/month)',
-    'Compress stored objects (saves $300/month)',
+    { title: 'Move to Nearline/Coldline Storage', description: 'Transition infrequently accessed data to cheaper storage classes.', estimatedSavings: 900 },
+    { title: 'Enable Object Lifecycle Policies', description: 'Automatically delete or transition old objects to save on storage costs.', estimatedSavings: 600 },
+    { title: 'Compress Stored Objects', description: 'Compressing data before storing can lead to substantial savings on storage and network.', estimatedSavings: 300 },
   ],
   breakdown: { compute: 500, storage: 2400, network: 250, other: 100 },
 };
@@ -30,9 +30,9 @@ const NETWORK_HEAVY_DATASET: AnalysisResult = {
   optimizedCost: 2820,
   savings: 2800,
   recommendations: [
-    'Use Cloud CDN to reduce egress (saves $1400/month)',
-    'Optimize inter-region transfers (saves $800/month)',
-    'Enable compression (saves $600/month)',
+    { title: 'Use Cloud CDN', description: 'Cache content closer to users to reduce costly egress traffic.', estimatedSavings: 1400 },
+    { title: 'Optimize Inter-Region Transfers', description: 'Review and optimize data transfer patterns between regions to minimize costs.', estimatedSavings: 800 },
+    { title: 'Enable VPC Flow Logs', description: 'Analyze network traffic to identify and eliminate unnecessary data transfers.', estimatedSavings: 600 },
   ],
   breakdown: { compute: 1200, storage: 600, network: 3620, other: 200 },
 };
@@ -42,9 +42,9 @@ const SMALL_WORKLOAD_DATASET: AnalysisResult = {
   optimizedCost: 1350,
   savings: 750,
   recommendations: [
-    'Enable autoscaling (saves $300/month)',
-    'Use preemptible VMs for dev/test (saves $250/month)',
-    'Clean up unused resources (saves $200/month)',
+    { title: 'Enable Autoscaling', description: 'Automatically scale resources up and down to match demand, avoiding costs for idle resources.', estimatedSavings: 300 },
+    { title: 'Use Preemptible VMs for Dev/Test', description: 'Leverage low-cost, short-lived instances for non-critical development and testing environments.', estimatedSavings: 250 },
+    { title: 'Clean Up Unused Resources', description: 'Regularly identify and delete unattached disks, unused IP addresses, and idle VMs.', estimatedSavings: 200 },
   ],
   breakdown: { compute: 1000, storage: 600, network: 400, other: 100 },
 };
@@ -54,12 +54,13 @@ const DEFAULT_DATASET: AnalysisResult = {
   optimizedCost: 3120,
   savings: 3730,
   recommendations: [
-    'Automated resource scheduling (saves $1500/month)',
-    'Migrate to Cloud Run (saves $1200/month)',
-    'Use sustained/committed discounts (saves $1030/month)',
+    { title: 'Automated Resource Scheduling', description: 'Automatically shut down non-production resources during off-hours to reduce idle costs.', estimatedSavings: 1500 },
+    { title: 'Migrate to Cloud Run', description: 'For containerized, stateless workloads, migrating from VMs to serverless Cloud Run can lower costs.', estimatedSavings: 1200 },
+    { title: 'Use Sustained/Committed Discounts', description: 'Leverage Google\'s automatic or purchased discounts for predictable workloads.', estimatedSavings: 1030 },
   ],
   breakdown: { compute: 3800, storage: 1650, network: 1200, other: 200 },
 };
+
 
 const getDemoDataset = (billingData: string): AnalysisResult => {
   const text = billingData.toLowerCase();
@@ -116,7 +117,15 @@ const analysisSchema = {
       savings: { type: Type.NUMBER },
       recommendations: {
         type: Type.ARRAY,
-        items: { type: Type.STRING },
+        items: {
+            type: Type.OBJECT,
+            properties: {
+                title: { type: Type.STRING, description: "A short, actionable title for the recommendation." },
+                description: { type: Type.STRING, description: "A brief explanation of the recommendation and why it saves money." },
+                estimatedSavings: { type: Type.NUMBER, description: "The estimated monthly savings in USD for this specific action." }
+            },
+            required: ['title', 'description', 'estimatedSavings']
+        },
       },
       breakdown: {
         type: Type.OBJECT,
@@ -134,11 +143,21 @@ const analysisSchema = {
 
 const validateAnalysisResult = (data: any): data is AnalysisResult => {
     if (!data) return false;
+
+    const recommendationsAreValid = Array.isArray(data.recommendations) && data.recommendations.every(
+        (rec: any): rec is Recommendation => 
+            typeof rec === 'object' &&
+            rec !== null &&
+            typeof rec.title === 'string' &&
+            typeof rec.description === 'string' &&
+            typeof rec.estimatedSavings === 'number'
+    );
+
     return (
         typeof data.currentCost === 'number' &&
         typeof data.optimizedCost === 'number' &&
         typeof data.savings === 'number' &&
-        Array.isArray(data.recommendations) &&
+        recommendationsAreValid &&
         typeof data.breakdown === 'object' &&
         data.breakdown !== null &&
         typeof data.breakdown.compute === 'number' &&
@@ -169,7 +188,7 @@ export const analyzeBillingData = async (billingData: string, apiKey?: string): 
         1. "currentCost": The total current cost.
         2. "optimizedCost": The estimated cost after optimizations.
         3. "savings": The total potential savings (currentCost - optimizedCost).
-        4. "recommendations": An array of 3-5 specific, actionable recommendation strings.
+        4. "recommendations": An array of 3-5 objects, where each object has "title" (string), "description" (string), and "estimatedSavings" (number).
         5. "breakdown": An object with cost breakdown for "compute", "storage", "network", and "other".
         `;
       
