@@ -22,6 +22,9 @@ export interface ForecastDataPoint {
   month: string;
   cost?: number;
   predictedCost?: number;
+  lowerBound?: number;
+  upperBound?: number;
+  confidenceRange?: number;
 }
 
 export interface AnalysisResult {
@@ -49,3 +52,8 @@ export interface AnalysisResponse {
   result: AnalysisResult;
   source: DataSource;
 }
+
+export type Currency = {
+  code: string;
+  symbol: string;
+};

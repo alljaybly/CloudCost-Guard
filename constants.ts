@@ -12,6 +12,26 @@ Cloud SQL,$630.55
 Other,$400.00
 `;
 
+export const DEFAULT_BILLING_DATA = `Service,Cost
+Compute Engine VM instances,$4847.00
+Cloud Storage buckets,$3250.00
+Network egress bandwidth,$5620.00
+Small test workload,$2100.00
+`;
+
+// Initial default result to show on first load
+export const INITIAL_ANALYSIS_RESULT: AnalysisResult = {
+    currentCost: 6850,
+    optimizedCost: 3120,
+    savings: 3730,
+    recommendations: [
+      { title: 'Automated Resource Scheduling', description: 'Automatically shut down non-production resources during off-hours to reduce idle costs.', estimatedSavings: 1500 },
+      { title: 'Migrate to Cloud Run', description: 'For containerized, stateless workloads, migrating from VMs to serverless Cloud Run can lower costs and improve scalability.', estimatedSavings: 1200 },
+      { title: 'Use Sustained/Committed Discounts', description: 'Leverage Google\'s automatic sustained use discounts or purchase committed use discounts for predictable workloads.', estimatedSavings: 1030 }
+    ],
+    breakdown: { compute: 3800, storage: 1650, network: 1200, other: 200 }
+};
+
 // Fix: Updated data structure to conform to AnalysisResult interface
 export const DEFAULT_DEMO_DATA: AnalysisResult = {
   currentCost: 4847,

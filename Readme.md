@@ -2,27 +2,27 @@
 
 CloudCost Guard is an intelligent dashboard that leverages the Google Gemini AI to analyze Google Cloud Platform (GCP) billing data, identify savings opportunities, and provide real-time budget monitoring.
 
-This project demonstrates a real-world, polished solution to a common challenge for businesses operating on the cloud, built with a modern frontend stack.
+This project demonstrates a real-world, polished solution to a common challenge for businesses operating on the cloud, built with a modern frontend stack and configured according to security best practices.
 
 ## Table of Contents
 
 - [✨ Key Features](#-key-features)
 - [🚀 Tech Stack](#-tech-stack)
-- [📁 File Structure](#-file-structure)
-- [🔧 Core Components](#-core-components)
-- [⚙️ Getting Started](#️-getting-started)
-- [💻 Usage](#-usage)
+- [📁 Project Structure](#-project-structure)
+- [⚙️ Configuration](#️-configuration)
+- [💻 Running the Application](#-running-the-application)
+- [💡 How to Use](#-how-to-use)
 
 ---
 
 ## ✨ Key Features
 
--   **🤖 AI Cost Analysis:** Paste raw GCP billing data to let Gemini's advanced reasoning capabilities perform a detailed analysis and identify key cost drivers.
--   **💡 Actionable Recommendations:** Receive specific, high-impact optimization suggestions with estimated monthly savings.
--   **📊 Interactive Data Visualization:** Understand your spending at a glance with a dynamic cost breakdown bar chart powered by Recharts.
--   **🔔 Real-Time Budget Alerts:** Set a monthly budget and configure custom warning/critical thresholds. A visual progress meter provides immediate feedback, and all settings are saved to your browser's local storage for persistence.
--   **🔒 Secure API Key Management:** Your Gemini API key is stored securely in your browser's session storage and is never sent to any server.
--   **🌐 Dynamic Demo Mode:** The app intelligently selects a relevant demo scenario based on keywords in your input, ensuring a full-featured demonstration is always possible, even without an API key.
+-   **🤖 AI-Powered Cost Analysis:** Paste raw GCP billing data (or upload a CSV) and let Gemini perform a detailed analysis to identify key cost drivers.
+-   **💡 Actionable Recommendations:** Receive specific, high-impact optimization suggestions with estimated monthly savings, which can be filtered and sorted.
+-   **📊 Interactive Data Visualizations:** Understand spending with a dynamic cost breakdown bar chart and a 3-month cost forecast, all powered by Recharts.
+-   **🔔 Real-Time Budget Alerts:** Set a monthly budget and configure custom warning/critical thresholds. A visual progress meter provides immediate feedback, and settings are saved to your browser's local storage for persistence.
+-   **🔒 Secure Configuration:** The application is configured via an environment variable for the Gemini API key, ensuring keys are not exposed in the client-side code, adhering to security best practices.
+-   **🌐 Dynamic Demo Mode:** The app provides a full-featured demonstration using relevant sample data, which works offline and does not require an API key.
 
 ---
 
@@ -34,66 +34,66 @@ This project demonstrates a real-world, polished solution to a common challenge 
 
 ---
 
-## 📁 File Structure
+## 📁 Project Structure
 
 ```
 /
-├── public/
-├── src/
-│   ├── components/         # Reusable React components
-│   │   ├── Alerts.tsx      # Real-time budget alerts dashboard
-│   │   ├── CostAnalysis.tsx  # Input form for billing data and API key
-│   │   └── MetricsDashboard.tsx # Displays AI analysis results and charts
-│   ├── services/
-│   │   └── geminiService.ts  # Logic for Gemini API calls and demo data
-│   ├── utils/
-│   │   └── jsonUtils.ts      # Robust JSON parsing and validation
-│   ├── App.tsx             # Main application component and state management
-│   ├── constants.ts        # Sample data and constants
-│   └── types.ts            # TypeScript type definitions
-├── index.html
-└── package.json
+├── components/           # Reusable React components
+│   ├── Alerts.tsx        # Real-time budget alerts dashboard
+│   ├── CostAnalysis.tsx  # Input form for billing data
+│   ├── ErrorDisplay.tsx  # Component to show errors/warnings
+│   ├── Header.tsx        # Application header and currency selector
+│   ├── LoadingSpinner.tsx# Spinner for loading states
+│   └── MetricsDashboard.tsx# Displays AI analysis results and charts
+├── services/
+│   └── geminiService.ts    # Logic for Gemini API calls and demo data
+├── utils/
+│   └── currencyUtils.ts  # Currency formatting and constants
+├── App.tsx               # Main application component and state management
+├── constants.ts          # Sample data and constants
+├── types.ts              # TypeScript type definitions
+├── index.html            # Main HTML entry point
+└── index.tsx             # React application bootstrap
 ```
 
 ---
 
-## 🔧 Core Components
+## ⚙️ Configuration
 
--   **`RealTimeAlerts.tsx`**: A self-contained dashboard for budget monitoring. It handles its own state for settings (budget, thresholds) and saves them to `localStorage`. The progress circle and alert status update in real-time as the user types.
--   **`CostAnalysis.tsx`**: The main user interaction area where users paste billing data. It manages the API key modal and triggers the analysis process.
--   **`ResultsDisplay.tsx`**: A component that takes a complete `AnalysisResult` object and renders the key metrics, actionable recommendations, and the cost breakdown chart.
+To enable live analysis with the Gemini API, you must configure your API key as an environment variable.
+
+1.  **Obtain an API Key:** Get your Google Gemini API key from [Google AI Studio](https://aistudio.google.com/app/apikey).
+2.  **Set the Environment Variable:** This application is designed to run in an environment where `process.env.API_KEY` is available. When running locally or deploying, ensure this variable is set. For example, you can create a `.env` file in the project root:
+
+    ```
+    API_KEY="YOUR_GEMINI_API_KEY_HERE"
+    ```
+
+    *Note: The project setup must support loading environment variables (e.g., using Vite, Create React App, or another bundler that handles `.env` files).*
 
 ---
 
-## ⚙️ Getting Started
+## 💻 Running the Application
 
-Follow these steps to get the CloudCost Guard dashboard running on your local machine.
-
-### Prerequisites
-
--   Node.js (v18 or later recommended)
--   An npm-compatible package manager (npm, yarn, pnpm)
-
-### Installation
-
-1.  Clone the repository:
+1.  **Clone the repository:**
     ```sh
     git clone <repository-url>
     cd cloudcost-guard
     ```
-2.  Install the dependencies:
+2.  **Install dependencies:**
     ```sh
     npm install
     ```
-3.  Run the development server:
+3.  **Configure your API key** as described in the [Configuration](#️-configuration) section.
+4.  **Run the development server:**
     ```sh
     npm run dev
     ```
-    The application will be available at `http://localhost:5173` (or the next available port).
+    The application will now be running on your local machine.
 
 ---
 
-## 💻 Usage
+## 💡 How to Use
 
 The application is divided into two main sections: Real-Time Alerts and AI-Powered Cost Analysis.
 
@@ -101,24 +101,22 @@ The application is divided into two main sections: Real-Time Alerts and AI-Power
 
 This section allows you to monitor your current spending against a defined budget.
 
--   **Set Your Budget:** Enter your total monthly budget in the "Monthly Budget" field.
--   **Configure Thresholds:** Adjust the "Warning" and "Critical" percentages to define when alerts should change color.
--   **Automatic Saving:** All changes are validated and saved to your browser's local storage automatically as you type.
--   **Instant Feedback:** The progress circle, percentage, and status message will update in real-time based on your settings and the current spend data from the analysis below.
+-   **Set Your Budget:** Enter your total monthly budget.
+-   **Configure Thresholds:** Adjust the "Warning" and "Critical" percentages.
+-   **Automatic Saving:** Changes are validated and saved to your browser's local storage automatically.
+-   **Instant Feedback:** The progress circle updates based on your settings and the current spend from the analysis.
 
 ### 2. AI-Powered Cost Analysis
 
 This is where you can get insights into your cloud spending.
 
--   **Demo Mode (Default):**
-    -   Without an API key, the app runs in demo mode.
-    -   Paste any text into the text area. The app will analyze the text for keywords (e.g., "compute", "storage", "network") and provide a relevant demo dataset.
-    -   This allows you to explore the full functionality of the results display.
+-   **Demo Mode (No API Key):**
+    -   If the `API_KEY` environment variable is not set, the app runs in demo mode.
+    -   Click "Analyze with AI" with the default data, or paste your own, to see a demonstration with sample analysis results. This allows you to explore the full functionality of the dashboard.
 
--   **Live Analysis:**
-    1.  Click the **"Set API Key"** button.
-    2.  In the modal, paste your Google Gemini API key and click **"Save Key"**.
-    3.  The key is stored in session storage for your current session only.
-    4.  Paste your actual GCP billing data (CSV or JSON format) into the text area.
-    5.  Click **"Analyze with AI"**. A live request will be sent to the Gemini API, and the results will be displayed.
-    6.  If the API call fails or the response is invalid, the app will gracefully fall back to a relevant demo dataset and show a warning message.
+-   **Live Analysis (API Key Configured):**
+    1.  Ensure your `API_KEY` is correctly configured.
+    2.  Paste your actual GCP billing data (e.g., from a CSV export) into the text area, or use the "Upload CSV" button.
+    3.  Click **"Analyze with AI"**. A live request will be sent to the Gemini API.
+    4.  The dashboard will update with a real-time analysis, cost breakdown, and actionable recommendations based on your data.
+    5.  If the API call fails, the app will gracefully fall back to a relevant demo dataset and show a warning message.

@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type } from '@google/genai';
 import { AnalysisResult, AnalysisResponse, Recommendation } from '../types';
 
@@ -122,7 +123,7 @@ const analysisSchema = {
             properties: {
                 title: { type: Type.STRING, description: "A short, actionable title for the recommendation." },
                 description: { type: Type.STRING, description: "A brief explanation of the recommendation and why it saves money." },
-                estimatedSavings: { type: Type.NUMBER, description: "The estimated monthly savings in USD for this specific action." }
+                estimatedSavings: { type: Type.NUMBER, description: "The estimated monthly savings in the requested currency for this specific action." }
             },
             required: ['title', 'description', 'estimatedSavings']
         },
@@ -167,29 +168,32 @@ const validateAnalysisResult = (data: any): data is AnalysisResult => {
     );
 };
 
-export const analyzeBillingData = async (billingData: string, apiKey?: string): Promise<AnalysisResponse> => {
+// Fix: Per Gemini API guidelines, API key must be from process.env.API_KEY. Removed apiKey parameter.
+export const analyzeBillingData = async (billingData: string, currencyCode: string): Promise<AnalysisResponse> => {
     const fallbackResult = getDemoDataset(billingData);
     
-    if (!apiKey) {
+    if (!process.env.API_KEY) {
       console.warn("API key not provided. Using fallback demo data.");
       return Promise.resolve({ result: fallbackResult, source: 'demo' });
     }
   
     try {
-      const ai = new GoogleGenAI({ apiKey });
+      // Fix: Per Gemini API guidelines, initialize with apiKey from process.env.
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       
       const prompt = `Analyze this GCP billing data and provide cost optimization recommendations.
+        All monetary values in your response MUST be in ${currencyCode}.
 
         Billing Data:
         ${billingData}
         
         Respond ONLY with valid JSON (no markdown, no explanation):
         The JSON object must contain:
-        1. "currentCost": The total current cost.
-        2. "optimizedCost": The estimated cost after optimizations.
-        3. "savings": The total potential savings (currentCost - optimizedCost).
-        4. "recommendations": An array of 3-5 objects, where each object has "title" (string), "description" (string), and "estimatedSavings" (number).
-        5. "breakdown": An object with cost breakdown for "compute", "storage", "network", and "other".
+        1. "currentCost": The total current cost in ${currencyCode}.
+        2. "optimizedCost": The estimated cost after optimizations in ${currencyCode}.
+        3. "savings": The total potential savings (currentCost - optimizedCost) in ${currencyCode}.
+        4. "recommendations": An array of 3-5 objects, where each object has "title" (string), "description" (string), and "estimatedSavings" (number in ${currencyCode}).
+        5. "breakdown": An object with cost breakdown for "compute", "storage", "network", and "other" in ${currencyCode}.
         `;
       
       const response = await ai.models.generateContent({

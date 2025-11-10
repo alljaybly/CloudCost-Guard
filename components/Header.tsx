@@ -1,5 +1,7 @@
 
 import React from 'react';
+import { Currency } from '../types';
+import { SUPPORTED_CURRENCIES } from '../utils/currencyUtils';
 
 const ShieldIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
@@ -7,8 +9,20 @@ const ShieldIcon = () => (
   </svg>
 );
 
+interface HeaderProps {
+    currency: Currency;
+    setCurrency: (currency: Currency) => void;
+}
 
-const Header: React.FC = () => {
+const Header: React.FC<HeaderProps> = ({ currency, setCurrency }) => {
+
+  const handleCurrencyChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedCurrency = SUPPORTED_CURRENCIES.find(c => c.code === event.target.value);
+    if (selectedCurrency) {
+      setCurrency(selectedCurrency);
+    }
+  };
+
   return (
     <header className="bg-white dark:bg-slate-800/50 backdrop-blur-sm shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -19,7 +33,26 @@ const Header: React.FC = () => {
               CloudCost Guard
             </h1>
           </div>
-          <p className="hidden md:block text-sm text-slate-500 dark:text-slate-400">AI-Powered GCP Cost Optimization</p>
+          <div className="flex items-center gap-x-4">
+            <p className="hidden md:block text-sm text-slate-500 dark:text-slate-400">AI-Powered GCP Cost Optimization</p>
+            <div className="relative">
+                <select 
+                    value={currency.code} 
+                    onChange={handleCurrencyChange}
+                    className="pl-3 pr-8 py-1.5 text-sm bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none appearance-none cursor-pointer"
+                    aria-label="Select currency"
+                >
+                    {SUPPORTED_CURRENCIES.map(c => (
+                        <option key={c.code} value={c.code}>
+                            {c.code} ({c.symbol})
+                        </option>
+                    ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-700 dark:text-slate-300">
+                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                </div>
+            </div>
+          </div>
         </div>
       </div>
     </header>
