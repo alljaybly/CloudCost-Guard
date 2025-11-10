@@ -1,6 +1,6 @@
-
 import { GoogleGenAI, Type } from '@google/genai';
 import { AnalysisResult, AnalysisResponse, Recommendation } from '../types';
+import { getApiKey } from '../utils/apiKey';
 
 const COMPUTE_HEAVY_DATASET: AnalysisResult = {
   currentCost: 4847,
@@ -168,18 +168,17 @@ const validateAnalysisResult = (data: any): data is AnalysisResult => {
     );
 };
 
-// Fix: Per Gemini API guidelines, API key must be from process.env.API_KEY. Removed apiKey parameter.
 export const analyzeBillingData = async (billingData: string, currencyCode: string): Promise<AnalysisResponse> => {
     const fallbackResult = getDemoDataset(billingData);
+    const apiKey = getApiKey();
     
-    if (!process.env.API_KEY) {
+    if (!apiKey) {
       console.warn("API key not provided. Using fallback demo data.");
       return Promise.resolve({ result: fallbackResult, source: 'demo' });
     }
   
     try {
-      // Fix: Per Gemini API guidelines, initialize with apiKey from process.env.
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const ai = new GoogleGenAI({ apiKey });
       
       const prompt = `Analyze this GCP billing data and provide cost optimization recommendations.
         All monetary values in your response MUST be in ${currencyCode}.

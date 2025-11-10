@@ -1,7 +1,7 @@
-
 import React from 'react';
 import { Currency } from '../types';
 import { SUPPORTED_CURRENCIES } from '../utils/currencyUtils';
+import { ApiKeySource } from '../utils/apiKey';
 
 const ShieldIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
@@ -9,12 +9,58 @@ const ShieldIcon = () => (
   </svg>
 );
 
+const KeyIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+      <path fillRule="evenodd" d="M18 8a6 6 0 01-7.743 5.743L4.257 19.743A1 1 0 013 19.172V15a1 1 0 011-1h.172l3.086-3.086A6 6 0 1118 8zm-6-4a4 4 0 100 8 4 4 0 000-8z" clipRule="evenodd" />
+    </svg>
+);
+
+
 interface HeaderProps {
     currency: Currency;
     setCurrency: (currency: Currency) => void;
+    apiKeySource: ApiKeySource;
+    onSetApiKey: () => void;
+    onRemoveApiKey: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ currency, setCurrency }) => {
+const KeyStatusIndicator: React.FC<{ source: ApiKeySource; onRemove: () => void }> = ({ source, onRemove }) => {
+    const baseClasses = "flex items-center gap-x-2 text-xs font-semibold px-2.5 py-1 rounded-full";
+    let statusText: string;
+    let colorClasses: string;
+  
+    switch (source) {
+      case 'manual':
+        statusText = 'Live (Manual Key)';
+        colorClasses = 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+        break;
+      case 'env':
+        statusText = 'Live (Env Key)';
+        colorClasses = 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+        break;
+      default:
+        statusText = 'Demo Mode';
+        colorClasses = 'bg-slate-200 text-slate-800 dark:bg-slate-700 dark:text-slate-200';
+    }
+  
+    return (
+        <div className="flex items-center gap-2">
+            <span className={`${baseClasses} ${colorClasses}`} title={`The application is currently using ${statusText}.`}>{statusText}</span>
+            {source === 'manual' && (
+                <button 
+                    onClick={onRemove} 
+                    className="text-xs text-red-600 dark:text-red-400 hover:underline font-medium"
+                    title="Remove manual API key and revert to environment key or demo mode."
+                >
+                    Remove
+                </button>
+            )}
+        </div>
+    );
+};
+
+
+const Header: React.FC<HeaderProps> = ({ currency, setCurrency, apiKeySource, onSetApiKey, onRemoveApiKey }) => {
 
   const handleCurrencyChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedCurrency = SUPPORTED_CURRENCIES.find(c => c.code === event.target.value);
@@ -34,7 +80,14 @@ const Header: React.FC<HeaderProps> = ({ currency, setCurrency }) => {
             </h1>
           </div>
           <div className="flex items-center gap-x-4">
-            <p className="hidden md:block text-sm text-slate-500 dark:text-slate-400">AI-Powered GCP Cost Optimization</p>
+            <KeyStatusIndicator source={apiKeySource} onRemove={onRemoveApiKey} />
+             <button
+                onClick={onSetApiKey}
+                className="hidden sm:inline-flex items-center gap-x-1.5 px-3 py-1.5 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 rounded-md hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+             >
+                <KeyIcon />
+                Set API Key
+            </button>
             <div className="relative">
                 <select 
                     value={currency.code} 

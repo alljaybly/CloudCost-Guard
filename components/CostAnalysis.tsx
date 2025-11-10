@@ -1,4 +1,3 @@
-
 import React, { useRef } from 'react';
 
 interface CostAnalysisProps {
@@ -7,7 +6,6 @@ interface CostAnalysisProps {
   setBillingData: (data: string) => void;
   isLoading: boolean;
   onClear: () => void;
-  // Fix: Removed props for API key management per Gemini API guidelines.
 }
 
 const UploadIcon = () => (
@@ -35,11 +33,9 @@ const CostAnalysis: React.FC<CostAnalysisProps> = ({ onAnalyze, billingData, set
     };
     reader.onerror = (error) => {
       console.error("Error reading file:", error);
-      // Future enhancement: show a user-facing error message.
     };
     reader.readAsText(file);
 
-    // Reset the input so the same file can be chosen again
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -50,12 +46,10 @@ const CostAnalysis: React.FC<CostAnalysisProps> = ({ onAnalyze, billingData, set
       <div className="flex justify-between items-start mb-4 flex-wrap gap-y-2">
         <div>
           <h2 className="text-xl font-semibold text-slate-900 dark:text-white">AI-Powered Cost Analysis</h2>
-          {/* Fix: Updated text to remove references to setting an API key in the UI. */}
           <p className="text-slate-600 dark:text-slate-400 mt-1 max-w-2xl">
-            Paste your GCP billing data or upload a CSV file for a live analysis. If an API key is not configured in the environment, demo data will be used.
+            Paste your GCP billing data or upload a CSV file. For a live analysis, use the "Set API Key" button in the header. If no key is provided, demo data will be shown.
           </p>
         </div>
-        {/* Fix: Removed API key status indicator and "Set Key" button to comply with Gemini API guidelines. */}
       </div>
 
       <form onSubmit={handleSubmit}>
